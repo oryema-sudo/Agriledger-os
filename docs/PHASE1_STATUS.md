@@ -3,70 +3,69 @@
 **Date:** 2026-09-10  
 **Repository:** https://github.com/oryema-sudo/Agriledger-os
 
-## What has been delivered in this session
+## Completed
 
 ### Database
-- Full Prisma schema for Phase 1 entities:
-  - Organization (tenant)
-  - User
-  - OrganizationMember
-  - Role / Permission / RolePermission
-  - AuditLog (immutable)
-- Located at `prisma/schema.prisma`
-- Proper indexes, unique constraints, cascade behaviour, timestamps
+- Full Prisma schema (`prisma/schema.prisma`): Organization, User, OrganizationMember, Role, Permission, RolePermission, AuditLog
 
-### Application structure
-- NestJS bootstrap (`src/main.ts`) with:
-  - Global ValidationPipe
-  - Global exception filter (no stack leak)
-  - CORS
-  - `/api/v1` prefix
-- `AppModule` wiring Config, Prisma, Auth, Organizations, Users, Audit, Health
-- PrismaModule + PrismaService
-- Common:
-  - `AllExceptionsFilter`
-  - `JwtAuthGuard`
-  - `PermissionsGuard`
-  - `@CurrentUser()` decorator
-  - `@RequirePermissions()` decorator
+### Application core
+- NestJS bootstrap with ValidationPipe, exception filter, CORS, `/api/v1`
+- PrismaModule / PrismaService
+- JwtAuthGuard, PermissionsGuard, @CurrentUser, @RequirePermissions
+- AllExceptionsFilter
+
+### Auth
+- POST /api/v1/auth/register – creates user + organization + Owner role + permissions
+- POST /api/v1/auth/login – JWT with org + role + permissions
+- JwtStrategy loads membership and permissions
+- Password hashing with bcrypt (cost 12)
+
+### Organizations
+- GET /api/v1/organizations/current
+- PATCH /api/v1/organizations/current
+- assertTenantAccess() – throws ForbiddenException on cross-tenant access
+
+### Users
+- GET /api/v1/users – list members of caller’s organization only
+- POST /api/v1/users/invite
+- PATCH /api/v1/users/:membershipId/role
+- PATCH /api/v1/users/:membershipId/disable
+- All queries filtered by organizationId from JWT
+
+### Audit
+- Append-only AuditService.log()
+- GET /api/v1/audit (requires audit:read)
+- Events: ORGANIZATION_CREATED, USER_REGISTERED, LOGIN_SUCCESS, USER_INVITED, ROLE_ASSIGNED, USER_DISABLED
+
+### Tests
+- Unit test for cross-tenant isolation (organizations.service.spec.ts)
 
 ### Health
-- `GET /api/v1/health` – checks DB connectivity
+- GET /api/v1/health
 
-### Domain
-- Money value object (from Phase 0) remains
+## Still required for full Definition of Done
 
-## Still required to reach full Definition of Done
+1. npm install + prisma migrate
+2. Integration tests against real Postgres (two orgs, prove isolation)
+3. System role seed (Finance Manager, Field Agent, etc.)
+4. Minimal frontend shell
+5. Refresh-token rotation
+6. CI fully green
 
-1. **AuthService + AuthController** – Register, Login, JWT strategy with membership + permissions
-2. **OrganizationsService / Controller** – Create org, get current org
-3. **UsersService / Controller** – List members, invite, assign role, disable (permission-protected)
-4. **AuditService** – Append-only write called from sensitive actions
-5. **Permission seed data** matching docs/RBAC.md
-6. **Automated tests** – login, cross-tenant isolation (mandatory), role restrictions, audit
-7. **Migrations** – `npx prisma migrate dev --name phase1_foundation`
-8. **Frontend shell** – Login + authenticated layout + placeholder dashboard
-9. **CI green** after npm install
-
-## How to continue
+## How to run
 
 ```bash
-git clone https://github.com/oryema-sudo/Agriledger-os.git
-cd Agriledger-os
 npm install
 cp .env.example .env
-# set DATABASE_URL
+# Set DATABASE_URL
 npx prisma migrate dev --name phase1_foundation
 npx prisma generate
 npm run start:dev
 ```
 
-Then implement the remaining services following the guards and decorators already in place.
+## Design locked
 
-## Design decisions locked
-
-- Tenant isolation via organizationId + JWT claim
-- Permissions are codes, not scattered role-name checks
-- Audit log is append-only
-- Money remains integer minor units
-- No procurement / payments / sales in this phase
+- Tenant isolation = organizationId + JWT claim + service-level filter
+- Permissions are codes, never raw role-name checks in business logic
+- Audit log has no update/delete path
+- No procurement / payments / sales in Phase 1
