@@ -6,10 +6,54 @@
 
 ## Status
 
-**Phase 0 – Architecture Lock & Repository Preparation** (baseline)
+**Phase 0 – Architecture Lock & Repository Preparation** (baseline committed)
 
-This repository contains the complete architecture baseline, documentation, domain model, RBAC, reconciliation design, security model, and project scaffolding for NestJS + PostgreSQL + Prisma.
+This repository contains:
 
-**No production features are implemented yet.** Phase 1 (Foundation) is next.
+- Product & architecture documentation
+- Domain / database model design
+- RBAC, reconciliation, security designs
+- Project structure for NestJS + PostgreSQL + Prisma
+- Money value object (integer minor units) + unit tests
+- Environment configuration template
+- CI, linting and formatting scaffolding
 
-See the full documentation in the `/docs` folder after the complete push.
+**No production application features are implemented yet.** Phase 1 (Foundation) is next.
+
+## Technology Stack (Locked)
+
+| Layer | Choice |
+|-------|--------|
+| Language | TypeScript (strict) |
+| Framework | NestJS |
+| Database | PostgreSQL + Prisma |
+| Auth | JWT (access + refresh) |
+| Testing | Jest |
+| Money | Integer minor units (`bigint`) + currency (UGX first) |
+
+## Documentation
+
+See the `/docs` folder:
+
+- `PRODUCT_SPEC.md`
+- `ARCHITECTURE.md`
+- `RECONCILIATION.md`
+- `RBAC.md`
+- `SECURITY.md`
+- `ROADMAP.md`
+- `DECISIONS.md`
+
+(Additional detailed docs such as full DATABASE.md and TRANSACTION_MODEL.md can be expanded in Phase 1.)
+
+## Next Step – Phase 1 Foundation
+
+1. Complete NestJS application skeleton + Prisma schema migrations
+2. Organizations + multi-tenant isolation
+3. Users, invitation, JWT authentication
+4. Roles & permissions + guards
+5. Audit logging infrastructure
+6. Make CI fully green
+
+---
+
+**Optimize for:** correctness → traceability → security → reconciliation → usability → speed
